@@ -7,6 +7,10 @@ to /output/entry.txt. Standard library only.
 
 v1: atomic write (temp file in /output, then os.replace), UTF-8
 byte-length guard (1-140 bytes) in addition to the character-length guard.
+
+v2: refuses an ENTRY that spans more than one line, since the letter has
+to stay a single line, and reports the letter size on stdout once the
+file lands so the run log shows how many chars and bytes were written.
 """
 
 import os
@@ -27,6 +31,9 @@ def main():
     if not ENTRY.strip():
         print("entry is blank", file=sys.stderr)
         return 1
+    if "\n" in ENTRY:
+        print("entry must be a single line", file=sys.stderr)
+        return 1
     entry_bytes = ENTRY.encode("utf-8")
     if not 1 <= len(entry_bytes) <= MAX_BYTES:
         print("entry length %d UTF-8 bytes out of range 1-%d" % (len(entry_bytes), MAX_BYTES), file=sys.stderr)
@@ -43,6 +50,7 @@ def main():
         except OSError:
             pass
         raise
+    print("wrote entry.txt: %d chars, %d bytes" % (len(ENTRY), len(entry_bytes)))
     return 0
 
 
